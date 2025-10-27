@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            min-height: 100vh;
+            direction: rtl;
+        }
+
+        body.ltr {
+            direction: ltr;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .logo {
+            font-size: 48px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #ff6b35, #ff8c42);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #ff6b35;
+            color: white;
+        }
+
+        .btn:hover {
+            background: #ff8c42;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #444;
+        }
+
+        .btn-success {
+            background: #2d5016;
+        }
+
+        .btn-success:hover {
+            background: #3d6b1f;
+        }
+
+        .input-group {
+            margin: 15px 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background: #2a2a2a;
+            color: white;
+            font-size: 16px;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #ff6b35;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: #2d5016;
+            border: 1px solid #3d6b1f;
+        }
+
+        .alert-error {
+            background: #5c0f0f;
+            border: 1px solid #ff0000;
+        }
+
+        .profile-pic {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 20px auto;
+            display: block;
+            border: 4px solid #ff6b35;
+        }
+
+        .profile-header {
+            text-align: center;
+            padding: 20px;
+            background: #222;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .profile-header img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+            border: 3px solid #ff6b35;
+        }
+
+        .profile-header h2 {
+            margin: 10px 0;
+        }
+
+        .chat-list {
+            margin-top: 20px;
+        }
+
+        .chat-item {
+            background: #222;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .chat-item:hover {
+            background: #2a2a2a;
+        }
+
+        .chat-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-left: 15px;
+        }
+
+        body.ltr .chat-item img {
+            margin-left: 0;
+            margin-right: 15px;
+        }
+
+        .chat-info {
+            flex: 1;
+        }
+
+        .chat-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .chat-status {
+            font-size: 12px;
+            color: #2d5016;
+        }
+
+        .chat-status.offline {
+            color: #999;
+        }
+
+        .message-container {
+            height: calc(100vh - 250px);
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 150px;
+            background: #1a1a1a;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            margin: 8px 0;
+            display: flex;
+            align-items: flex-end;
+            position: relative;
+        }
+
+        .message.sent {
+            justify-content: flex-end;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            background: #333;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .message-bubble:hover {
+            transform: scale(1.02);
+        }
+
+        .message.sent .message-bubble {
+            background: #ff6b35;
+        }
+
+        .reply-indicator {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #ff6b35;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .message.sent .reply-indicator {
+            right: -35px;
+        }
+
+        .message:not(.sent) .reply-indicator {
+            left: -35px;
+        }
+
+        body.ltr .message.sent .reply-indicator {
+            left: -35px;
+            right: auto;
+        }
+
+        body.ltr .message:not(.sent) .reply-indicator {
+            right: -35px;
+            left: auto;
+        }
+
+        .message.active .reply-indicator {
+            display: flex;
+        }
+
+        .reply-preview {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 3px solid #ff6b35;
+            font-size: 13px;
+        }
+
+        .reply-preview-sender {
+            color: #ff6b35;
+            font-weight: bold;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+
+        .reply-preview-text {
+            color: #ccc;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .replying-to-bar {
+            background: #2a2a2a;
+            padding: 10px 15px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            border-top: 2px solid #ff6b35;
+        }
+
+        .replying-to-bar.active {
+            display: flex;
+        }
+
+        .replying-to-content {
+            flex: 1;
+        }
+
+        .replying-to-name {
+            color: #ff6b35;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .replying-to-text {
+            color: #ccc;
+            font-size: 13px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .cancel-reply {
+            background: #ff0000;
+            border: none;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .message-text {
+            word-wrap: break-word;
+            margin-bottom: 5px;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .message-input-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #222;
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #333;
+            border-radius: 25px;
+            background: #2a2a2a;
+            color: white;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .message-input:focus {
+            border-color: #ff6b35;
+        }
+
+        .send-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #ff6b35;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            background: #333;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        body.ltr .back-btn {
+            left: 20px;
+        }
+
+        body:not(.ltr) .back-btn {
+            right: 20px;
+        }
+
+        .request-item {
+            background: #222;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .request-actions button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .accept-btn {
+            background: #2d5016;
+            color: white;
+        }
+
+        .reject-btn {
+            background: #5c0f0f;
+            color: white;
+        }
+
+        .icon-btn {
+            background: #333;
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+
+        .icon-btn:hover {
+            background: #444;
+        }
+
+        .gender-selection {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .gender-option {
+            flex: 1;
+            padding: 30px;
+            background: #222;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .gender-option:hover {
+            border-color: #ff6b35;
+        }
+
+        .gender-option.selected {
+            border-color: #ff6b35;
+            background: #2a2a2a;
+        }
+
+        .gender-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+        }
+
+        .instagram-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .instagram-link:hover {
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            .message-container {
+                height: calc(100vh - 200px);
+                padding-bottom: 180px;
+            }
+
+            .message-input-container {
+                padding: 10px;
+            }
+
+            .replying-to-bar {
+                padding: 8px 12px;
+            }
+
+            .reply-indicator {
+                width: 30px;
+                height: 30px;
+                font-size: 14px;
+            }
+
+            .message.sent .reply-indicator {
+                right: -40px;
+            }
+
+            .message:not(.sent) .reply-indicator {
+                left: -40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        
+        <div id="languageScreen" class="screen active">
+            <div class="container">
+                <div class="header">
+                    <div class="logo">V Chat</div>
+                    <p class="subtitle">Select your language / اختر لغتك</p>
+                </div>
+                <button class="btn" onclick="selectLanguage('ar')">العربية</button>
+                <button class="btn" onclick="selectLanguage('en')">English</button>
+            </div>
+        </div>
+
+        
+        <div id="authScreen" class="screen">
+            <div class="container">
+                <div class="header">
+                    <div class="logo">V Chat</div>
+                    <p class="subtitle" id="authSubtitle"></p>
+                </div>
+                <button class="btn" onclick="showSignup()" id="btnCreateAccount"></button>
+                <button class="btn btn-secondary" onclick="showLogin()" id="btnLogin"></button>
+            </div>
+        </div>
+
+        
+        <div id="signupScreen" class="screen">
+            <div class="container">
+                <button class="back-btn" onclick="showAuth()">←</button>
+                <div class="header">
+                    <div class="logo">V Chat</div>
+                    <p class="subtitle" id="signupSubtitle"></p>
+                </div>
+                <div class="alert alert-error" id="signupError"></div>
+                <div class="alert alert-success" id="signupSuccess"></div>
+                <div class="input-group">
+                    <label id="labelName"></label>
+                    <input type="text" id="signupName" />
+                </div>
+                <div class="input-group">
+                    <label id="labelAge"></label>
+                    <input type="number" id="signupAge" min="12" />
+                </div>
+                <div class="input-group">
+                    <label id="labelPassword"></label>
+                    <input type="password" id="signupPassword" />
+                </div>
+                <div class="input-group">
+                    <label id="labelConfirmPassword"></label>
+                    <input type="password" id="signupConfirmPassword" />
+                </div>
+                <button class="btn" onclick="signup()" id="btnSignup"></button>
+            </div>
+        </div>
+
+        
+        <div id="loginScreen" class="screen">
+            <div class="container">
+                <button class="back-btn" onclick="showAuth()">←</button>
+                <div class="header">
+                    <div class="logo">V Chat</div>
+                    <p class="subtitle" id="loginSubtitle"></p>
+                </div>
+                <div class="alert alert-error" id="loginError"></div>
+                <div class="input-group">
+                    <label id="labelLoginName"></label>
+                    <input type="text" id="loginName" />
+                </div>
+                <div class="input-group">
+                    <label id="labelLoginPassword"></label>
+                    <input type="password" id="loginPassword" />
+                </div>
+                <button class="btn" onclick="login()" id="btnLoginSubmit"></button>
+                <p style="text-align: center; margin-top: 20px; color: #999; font-size: 14px;" id="forgotPasswordText"></p>
+                <a href="https://www.instagram.com/maybe_7oka?utm_source=ig_web_button_share_sheet&igsh=ajVhZWd4NDl6c2Rv" target="_blank" class="instagram-link" style="display: block; width: fit-content; margin: 10px auto;">
+                    <span>📷</span>
+                    <span id="contactDeveloper"></span>
+                </a>
+            </div>
+        </div>
+
+        
+        <div id="genderScreen" class="screen">
+            <div class="container">
+                <div class="header">
+                    <div class="logo">V Chat</div>
+                    <p class="subtitle" id="genderSubtitle"></p>
+                </div>
+                <div class="gender-selection">
+                    <div class="gender-option" onclick="selectGender('male')" id="maleOption">
+                        <div class="gender-icon">👨</div>
+                        <p id="maleText"></p>
+                    </div>
+                    <div class="gender-option" onclick="selectGender('female')" id="femaleOption">
+                        <div class="gender-icon">👩</div>
+                        <p id="femaleText"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div id="mainScreen" class="screen">
+            <div class="container">
+                <div class="profile-header">
+                    <img id="userProfilePic" src="" alt="Profile">
+                    <h2 id="userName"></h2>
+                    <a href="https://www.instagram.com/maybe_7oka?utm_source=ig_web_button_share_sheet&igsh=ajVhZWd4NDl6c2Rv" target="_blank" class="instagram-link">
+                        <span>📷</span>
+                        <span id="talkToDeveloper"></span>
+                    </a>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button class="icon-btn" onclick="showAddFriend()" id="btnAddFriend">💬</button>
+                    <button class="icon-btn" onclick="showRequests()" id="btnRequests">←</button>
+                </div>
+                <div class="chat-list" id="chatList"></div>
+            </div>
+        </div>
+
+        
+        <div id="addFriendScreen" class="screen">
+            <div class="container">
+                <button class="back-btn" onclick="showMain()">←</button>
+                <div class="header">
+                    <div class="logo">V Chat</div>
+                    <p class="subtitle" id="addFriendSubtitle"></p>
+                </div>
+                <div class="alert alert-success" id="addFriendSuccess"></div>
+                <div class="alert alert-error" id="addFriendError"></div>
+                <div class="input-group">
+                    <label id="labelFriendName"></label>
+                    <input type="text" id="friendName" />
+                </div>
+                <button class="btn" onclick="sendFriendRequest()" id="btnSendRequest"></button>
+            </div>
+        </div>
+
+        
+        <div id="requestsScreen" class="screen">
+            <div class="container">
+                <button class="back-btn" onclick="showMain()">←</button>
+                <div class="header">
+                    <div class="logo">V Chat</div>
+                    <p class="subtitle" id="requestsSubtitle"></p>
+                </div>
+                <div id="requestsList"></div>
+            </div>
+        </div>
+
+        
+        <div id="chatScreen" class="screen">
+            <button class="back-btn" onclick="showMain()">←</button>
+            <div class="profile-header">
+                <img id="chatUserPic" src="" alt="Profile">
+                <h2 id="chatUserName"></h2>
+                <p class="chat-status" id="chatUserStatus"></p>
+            </div>
+            <div class="message-container" id="messageContainer"></div>
+            <div class="replying-to-bar" id="replyingToBar">
+                <div class="replying-to-content">
+                    <div class="replying-to-name" id="replyingToName"></div>
+                    <div class="replying-to-text" id="replyingToText"></div>
+                </div>
+                <button class="cancel-reply" onclick="cancelReply()">✕</button>
+            </div>
+            <div class="message-input-container">
+                <input type="text" class="message-input" id="messageInput" placeholder="اكتب رسالة..." />
+                <button class="send-btn" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, addDoc, doc, setDoc, getDoc, getDocs, query, where, onSnapshot, updateDoc, arrayUnion, orderBy, Timestamp, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getDatabase, ref, onValue, set, onDisconnect } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCWS2nOe6IUjoovjElMuiErOFmSCOlLlVE",
+            authDomain: "vchat-79ec4.firebaseapp.com",
+            databaseURL: "https://vchat-79ec4-default-rtdb.firebaseio.com",
+            projectId: "vchat-79ec4",
+            storageBucket: "vchat-79ec4.firebasestorage.app",
+            messagingSenderId: "373524809657",
+            appId: "1:373524809657:web:eeae627559d33a38609868",
+            measurementId: "G-W6T0H35PK3"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const rtdb = getDatabase(app);
+
+        let currentUser = null;
+        let currentLang = 'ar';
+        let currentChatId = null;
+        let currentChatUser = null;
+        let replyingToMessage = null;
+        let isSending = false;
+
+        const translations = {
+            ar: {
+                authSubtitle: 'ابدأ محادثاتك الآن',
+                btnCreateAccount: 'إنشاء حساب',
+                btnLogin: 'تسجيل دخول',
+                signupSubtitle: 'إنشاء حساب جديد',
+                labelName: 'الاسم',
+                labelAge: 'العمر (12+)',
+                labelPassword: 'كلمة المرور',
+                labelConfirmPassword: 'تأكيد كلمة المرور',
+                btnSignup: 'إنشاء الحساب',
+                loginSubtitle: 'تسجيل الدخول',
+                labelLoginName: 'الاسم',
+                labelLoginPassword: 'كلمة المرور',
+                btnLoginSubmit: 'دخول',
+                forgotPasswordText: 'نسيت كلمة المرور؟',
+                contactDeveloper: 'تواصل مع المطور',
+                genderSubtitle: 'اختر نوعك',
+                maleText: 'ذكر',
+                femaleText: 'أنثى',
+                talkToDeveloper: 'تحدث مع المطور',
+                btnAddFriend: 'إضافة صديق 💬',
+                btnRequests: 'الطلبات ←',
+                addFriendSubtitle: 'إضافة صديق جديد',
+                labelFriendName: 'اسم المستخدم',
+                btnSendRequest: 'إرسال طلب',
+                requestsSubtitle: 'طلبات الصداقة',
+                online: 'متصل',
+                offline: 'غير متصل',
+                requestSent: 'تم إرسال الطلب بنجاح! ✓',
+                requestFailed: 'فشل! المستخدم غير موجود',
+                ageError: 'العمر يجب أن يكون 12 سنة أو أكثر',
+                passwordMismatch: 'كلمتا المرور غير متطابقتين',
+                loginError: 'خطأ في اسم المستخدم أو كلمة المرور',
+                noChats: 'لا توجد محادثات بعد',
+                noRequests: 'لا توجد طلبات صداقة',
+                signupSuccess: 'تم إنشاء الحساب بنجاح! ✓'
+            },
+            en: {
+                authSubtitle: 'Start your conversations now',
+                btnCreateAccount: 'Create Account',
+                btnLogin: 'Login',
+                signupSubtitle: 'Create New Account',
+                labelName: 'Name',
+                labelAge: 'Age (12+)',
+                labelPassword: 'Password',
+                labelConfirmPassword: 'Confirm Password',
+                btnSignup: 'Create Account',
+                loginSubtitle: 'Login',
+                labelLoginName: 'Name',
+                labelLoginPassword: 'Password',
+                btnLoginSubmit: 'Login',
+                forgotPasswordText: 'Forgot password?',
+                contactDeveloper: 'Contact Developer',
+                genderSubtitle: 'Select Your Gender',
+                maleText: 'Male',
+                femaleText: 'Female',
+                talkToDeveloper: 'Talk to Developer',
+                btnAddFriend: '💬 Add Friend',
+                btnRequests: 'Requests →',
+                addFriendSubtitle: 'Add New Friend',
+                labelFriendName: 'Username',
+                btnSendRequest: 'Send Request',
+                requestsSubtitle: 'Friend Requests',
+                online: 'Online',
+                offline: 'Offline',
+                requestSent: 'Request sent successfully! ✓',
+                requestFailed: 'Failed! User not found',
+                ageError: 'Age must be 12 or older',
+                passwordMismatch: 'Passwords do not match',
+                loginError: 'Wrong username or password',
+                noChats: 'No chats yet',
+                noRequests: 'No friend requests',
+                signupSuccess: 'Account created successfully! ✓'
+            }
+        };
+
+        window.selectLanguage = function(lang) {
+            currentLang = lang;
+            document.body.className = lang === 'en' ? 'ltr' : '';
+            document.documentElement.lang = lang;
+            setTimeout(() => {
+                updateTexts();
+                showScreen('authScreen');
+            }, 100);
+        };
+
+        function updateTexts() {
+            const t = translations[currentLang];
+            Object.keys(t).forEach(key => {
+                const el = document.getElementById(key);
+                if (el) {
+                    if (el.tagName === 'INPUT') {
+                        el.placeholder = t[key];
+                    } else {
+                        el.textContent = t[key];
+                    }
+                }
+            });
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        window.showAuth = () => {
+            updateTexts();
+            showScreen('authScreen');
+        };
+        window.showSignup = () => {
+            document.getElementById('signupError').classList.remove('show');
+            document.getElementById('signupSuccess').classList.remove('show');
+            updateTexts();
+            showScreen('signupScreen');
+        };
+        window.showLogin = () => {
+            document.getElementById('loginError').classList.remove('show');
+            updateTexts();
+            showScreen('loginScreen');
+        };
+        window.showMain = () => {
+            updateTexts();
+            showScreen('mainScreen');
+            loadChats();
+        };
+        window.showAddFriend = () => {
+            document.getElementById('addFriendSuccess').classList.remove('show');
+            document.getElementById('addFriendError').classList.remove('show');
+            document.getElementById('friendName').value = '';
+            updateTexts();
+            showScreen('addFriendScreen');
+        };
+        window.showRequests = () => {
+            updateTexts();
+            showScreen('requestsScreen');
+            loadRequests();
+        };
+
+        window.signup = async function() {
+            const name = document.getElementById('signupName').value.trim();
+            const age = parseInt(document.getElementById('signupAge').value);
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('signupConfirmPassword').value;
+
+            const errorEl = document.getElementById('signupError');
+            const successEl = document.getElementById('signupSuccess');
+            errorEl.classList.remove('show');
+            successEl.classList.remove('show');
+
+            if (!name || !age || !password || !confirmPassword) {
+                errorEl.textContent = currentLang === 'ar' ? 'يرجى ملء جميع الحقول' : 'Please fill all fields';
+                errorEl.classList.add('show');
+                return;
+            }
+
+            if (age < 12) {
+                errorEl.textContent = translations[currentLang].ageError;
+                errorEl.classList.add('show');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                errorEl.textContent = translations[currentLang].passwordMismatch;
+                errorEl.classList.add('show');
+                return;
+            }
+
+            if (password.length < 6) {
+                errorEl.textContent = currentLang === 'ar' ? 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' : 'Password must be at least 6 characters';
+                errorEl.classList.add('show');
+                return;
+            }
+
+            try {
+                const timestamp = Date.now();
+                const email = `${name.toLowerCase().replace(/\s/g, '')}_${timestamp}@vchat.com`;
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                await setDoc(doc(db, 'users', user.uid), {
+                    name: name,
+                    age: age,
+                    email: email,
+                    createdAt: Timestamp.now()
+                });
+
+                currentUser = { uid: user.uid, name: name, age: age };
+                successEl.textContent = translations[currentLang].signupSuccess;
+                successEl.classList.add('show');
+                
+                setTimeout(() => {
+                    showScreen('genderScreen');
+                }, 1500);
+            } catch (error) {
+                console.error('Signup error:', error);
+                if (error.code === 'auth/email-already-in-use') {
+                    errorEl.textContent = currentLang === 'ar' ? 'هذا الاسم مستخدم بالفعل' : 'This name is already used';
+                } else {
+                    errorEl.textContent = error.message;
+                }
+                errorEl.classList.add('show');
+            }
+        };
+
+        window.login = async function() {
+            const name = document.getElementById('loginName').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorEl = document.getElementById('loginError');
+            errorEl.classList.remove('show');
+
+            if (!name || !password) {
+                errorEl.textContent = currentLang === 'ar' ? 'يرجى ملء جميع الحقول' : 'Please fill all fields';
+                errorEl.classList.add('show');
+                return;
+            }
+
+            try {
+                const usersRef = collection(db, 'users');
+                const q = query(usersRef, where('name', '==', name));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    errorEl.textContent = translations[currentLang].loginError;
+                    errorEl.classList.add('show');
+                    return;
+                }
+
+                const userDoc = querySnapshot.docs[0];
+                const userData = userDoc.data();
+                
+                const userCredential = await signInWithEmailAndPassword(auth, userData.email, password);
+                const user = userCredential.user;
+
+                currentUser = { uid: user.uid, ...userData };
+                showMain();
+                loadUserProfile();
+            } catch (error) {
+                console.error('Login error:', error);
+                errorEl.textContent = translations[currentLang].loginError;
+                errorEl.classList.add('show');
+            }
+        };
+
+        window.selectGender = async function(gender) {
+            document.querySelectorAll('.gender-option').forEach(el => el.classList.remove('selected'));
+            document.getElementById(gender + 'Option').classList.add('selected');
+
+            const profilePic = gender === 'male' 
+                ? 'https://i.pinimg.com/736x/84/e4/09/84e4099f19049ae7405d1d736a01bcf2.jpg'
+                : 'https://i.pinimg.com/736x/d6/e5/8f/d6e58fe4fd2790e27c91b2bcc7dafe1d.jpg';
+
+            try {
+                await updateDoc(doc(db, 'users', currentUser.uid), {
+                    gender: gender,
+                    profilePic: profilePic
+                });
+
+                currentUser.profilePic = profilePic;
+                currentUser.gender = gender;
+                showMain();
+                loadUserProfile();
+            } catch (error) {
+                console.error('Error updating gender:', error);
+            }
+        };
+
+        function loadUserProfile() {
+            if (currentUser && currentUser.profilePic) {
+                document.getElementById('userProfilePic').src = currentUser.profilePic;
+                document.getElementById('userName').textContent = currentUser.name;
+                setupPresence();
+            }
+        }
+
+        function setupPresence() {
+            if (!currentUser || !currentUser.uid) return;
+
+            const userStatusRef = ref(rtdb, '/status/' + currentUser.uid);
+            const isOnlineData = {
+                state: 'online',
+                lastChanged: serverTimestamp()
+            };
+            const isOfflineData = {
+                state: 'offline',
+                lastChanged: serverTimestamp()
+            };
+
+            set(userStatusRef, isOnlineData);
+
+            onDisconnect(userStatusRef).set(isOfflineData);
+
+            window.addEventListener('beforeunload', () => {
+                set(userStatusRef, isOfflineData);
+            });
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    set(userStatusRef, isOfflineData);
+                } else {
+                    set(userStatusRef, isOnlineData);
+                }
+            });
+        }
+
+        window.sendFriendRequest = async function() {
+            const friendName = document.getElementById('friendName').value.trim();
+            const successEl = document.getElementById('addFriendSuccess');
+            const errorEl = document.getElementById('addFriendError');
+            successEl.classList.remove('show');
+            errorEl.classList.remove('show');
+
+            if (!friendName) {
+                errorEl.textContent = currentLang === 'ar' ? 'يرجى كتابة الاسم' : 'Please enter a name';
+                errorEl.classList.add('show');
+                return;
+            }
+
+            if (friendName === currentUser.name) {
+                errorEl.textContent = currentLang === 'ar' ? 'لا يمكنك إضافة نفسك!' : 'You cannot add yourself!';
+                errorEl.classList.add('show');
+                return;
+            }
+
+            try {
+                console.log('Searching for user:', friendName);
+                const usersRef = collection(db, 'users');
+                const q = query(usersRef, where('name', '==', friendName));
+                const querySnapshot = await getDocs(q);
+
+                console.log('Query result:', querySnapshot.empty ? 'Empty' : 'Found');
+
+                if (querySnapshot.empty) {
+                    errorEl.textContent = translations[currentLang].requestFailed;
+                    errorEl.classList.add('show');
+                    return;
+                }
+
+                const friendDoc = querySnapshot.docs[0];
+                const friendData = friendDoc.data();
+                const friendUid = friendDoc.id;
+
+                console.log('Friend found:', friendData);
+
+                const existingRequestQuery = query(
+                    collection(db, 'friendRequests'),
+                    where('from', '==', currentUser.uid),
+                    where('to', '==', friendUid),
+                    where('status', '==', 'pending')
+                );
+                const existingRequests = await getDocs(existingRequestQuery);
+
+                if (!existingRequests.empty) {
+                    errorEl.textContent = currentLang === 'ar' ? 'لقد أرسلت طلباً بالفعل' : 'Request already sent';
+                    errorEl.classList.add('show');
+                    return;
+                }
+
+                await addDoc(collection(db, 'friendRequests'), {
+                    from: currentUser.uid,
+                    to: friendUid,
+                    fromName: currentUser.name,
+                    fromPic: currentUser.profilePic,
+                    toName: friendData.name,
+                    status: 'pending',
+                    createdAt: Timestamp.now()
+                });
+
+                console.log('Friend request sent successfully');
+                successEl.textContent = translations[currentLang].requestSent;
+                successEl.classList.add('show');
+                document.getElementById('friendName').value = '';
+            } catch (error) {
+                console.error('Error sending friend request:', error);
+                errorEl.textContent = currentLang === 'ar' ? 'حدث خطأ، حاول مرة أخرى' : 'Error occurred, try again';
+                errorEl.classList.add('show');
+            }
+        };
+
+        async function loadRequests() {
+            const requestsListEl = document.getElementById('requestsList');
+            requestsListEl.innerHTML = '<div class="loading">' + (currentLang === 'ar' ? 'جاري التحميل...' : 'Loading...') + '</div>';
+
+            try {
+                const requestsRef = collection(db, 'friendRequests');
+                const q = query(requestsRef, where('to', '==', currentUser.uid), where('status', '==', 'pending'));
+                const querySnapshot = await getDocs(q);
+
+                requestsListEl.innerHTML = '';
+
+                if (querySnapshot.empty) {
+                    requestsListEl.innerHTML = `<p style="text-align: center; color: #999; padding: 20px;">${translations[currentLang].noRequests}</p>`;
+                    return;
+                }
+
+                querySnapshot.forEach(docSnap => {
+                    const request = docSnap.data();
+                    const requestDiv = document.createElement('div');
+                    requestDiv.className = 'request-item';
+                    requestDiv.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <img src="${request.fromPic}" style="width: 50px; height: 50px; border-radius: 50%;">
+                            <span>${request.fromName}</span>
+                        </div>
+                        <div class="request-actions">
+                            <button class="accept-btn" onclick="acceptRequest('${docSnap.id}', '${request.from}')">✓</button>
+                            <button class="reject-btn" onclick="rejectRequest('${docSnap.id}')">✗</button>
+                        </div>
+                    `;
+                    requestsListEl.appendChild(requestDiv);
+                });
+            } catch (error) {
+                console.error('Error loading requests:', error);
+                requestsListEl.innerHTML = `<p style="text-align: center; color: #ff0000; padding: 20px;">Error loading requests</p>`;
+            }
+        }
+
+        window.acceptRequest = async function(requestId, friendUid) {
+            try {
+                await updateDoc(doc(db, 'friendRequests', requestId), {
+                    status: 'accepted'
+                });
+
+                const chatId = [currentUser.uid, friendUid].sort().join('_');
+                
+                const chatDoc = await getDoc(doc(db, 'chats', chatId));
+                if (!chatDoc.exists()) {
+                    await setDoc(doc(db, 'chats', chatId), {
+                        participants: [currentUser.uid, friendUid],
+                        createdAt: Timestamp.now(),
+                        lastMessage: null,
+                        lastMessageTime: null
+                    });
+                }
+
+                loadRequests();
+            } catch (error) {
+                console.error('Error accepting request:', error);
+            }
+        };
+
+        window.rejectRequest = async function(requestId) {
+            try {
+                await updateDoc(doc(db, 'friendRequests', requestId), {
+                    status: 'rejected'
+                });
+                loadRequests();
+            } catch (error) {
+                console.error('Error rejecting request:', error);
+            }
+        };
+
+        async function loadChats() {
+            const chatListEl = document.getElementById('chatList');
+            chatListEl.innerHTML = '<div class="loading">' + (currentLang === 'ar' ? 'جاري التحميل...' : 'Loading...') + '</div>';
+
+            try {
+                const chatsRef = collection(db, 'chats');
+                const q = query(chatsRef, where('participants', 'array-contains', currentUser.uid));
+                
+                onSnapshot(q, async (querySnapshot) => {
+                    chatListEl.innerHTML = '';
+
+                    if (querySnapshot.empty) {
+                        chatListEl.innerHTML = `<p style="text-align: center; color: #999; padding: 20px;">${translations[currentLang].noChats}</p>`;
+                        return;
+                    }
+
+                    for (const docSnap of querySnapshot.docs) {
+                        const chat = docSnap.data();
+                        const friendUid = chat.participants.find(uid => uid !== currentUser.uid);
+                        
+                        const friendDoc = await getDoc(doc(db, 'users', friendUid));
+                        if (!friendDoc.exists()) continue;
+                        
+                        const friendData = friendDoc.data();
+
+                        const chatDiv = document.createElement('div');
+                        chatDiv.className = 'chat-item';
+                        chatDiv.onclick = () => openChat(docSnap.id, friendUid, friendData);
+
+                        const statusEl = document.createElement('div');
+                        statusEl.className = 'chat-status offline';
+                        statusEl.id = `status-${friendUid}`;
+                        statusEl.textContent = translations[currentLang].offline;
+
+                        const userStatusRef = ref(rtdb, '/status/' + friendUid);
+                        onValue(userStatusRef, (snapshot) => {
+                            const status = snapshot.val();
+                            const el = document.getElementById(`status-${friendUid}`);
+                            if (el) {
+                                if (status && status.state === 'online') {
+                                    el.textContent = translations[currentLang].online;
+                                    el.className = 'chat-status online';
+                                } else {
+                                    el.textContent = translations[currentLang].offline;
+                                    el.className = 'chat-status offline';
+                                }
+                            }
+                        });
+                        
+                        chatDiv.innerHTML = `
+                            <img src="${friendData.profilePic}" alt="${friendData.name}">
+                            <div class="chat-info">
+                                <div class="chat-name">${friendData.name}</div>
+                            </div>
+                        `;
+                        chatDiv.querySelector('.chat-info').appendChild(statusEl);
+                        chatListEl.appendChild(chatDiv);
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading chats:', error);
+                chatListEl.innerHTML = `<p style="text-align: center; color: #ff0000; padding: 20px;">Error loading chats</p>`;
+            }
+        }
+
+        window.openChat = function(chatId, friendUid, friendData) {
+            currentChatId = chatId;
+            currentChatUser = friendData;
+
+            document.getElementById('chatUserPic').src = friendData.profilePic;
+            document.getElementById('chatUserName').textContent = friendData.name;
+
+            const userStatusRef = ref(rtdb, '/status/' + friendUid);
+            onValue(userStatusRef, (snapshot) => {
+                const status = snapshot.val();
+                const statusEl = document.getElementById('chatUserStatus');
+                if (status && status.state === 'online') {
+                    statusEl.textContent = translations[currentLang].online;
+                    statusEl.className = 'chat-status online';
+                } else {
+                    statusEl.textContent = translations[currentLang].offline;
+                    statusEl.className = 'chat-status offline';
+                }
+            });
+
+            showScreen('chatScreen');
+            loadMessages();
+        };
+
+        function loadMessages() {
+            const messageContainerEl = document.getElementById('messageContainer');
+            const messagesRef = collection(db, 'chats', currentChatId, 'messages');
+            const q = query(messagesRef, orderBy('timestamp', 'asc'));
+
+            let isFirstLoad = true;
+
+            onSnapshot(q, (querySnapshot) => {
+                const shouldScroll = isFirstLoad || (messageContainerEl.scrollHeight - messageContainerEl.scrollTop <= messageContainerEl.clientHeight + 150);
+                
+                const messages = [];
+                querySnapshot.forEach(docSnap => {
+                    messages.push({
+                        id: docSnap.id,
+                        data: docSnap.data()
+                    });
+                });
+
+                messages.sort((a, b) => {
+                    const timeA = a.data.timestamp ? a.data.timestamp.toMillis() : 0;
+                    const timeB = b.data.timestamp ? b.data.timestamp.toMillis() : 0;
+                    return timeA - timeB;
+                });
+
+                messageContainerEl.innerHTML = '';
+
+                if (messages.length === 0) {
+                    messageContainerEl.innerHTML = `<p style="text-align: center; color: #999; padding: 20px;">${currentLang === 'ar' ? 'ابدأ المحادثة!' : 'Start the conversation!'}</p>`;
+                    return;
+                }
+
+                messages.forEach(msg => {
+                    const message = msg.data;
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = message.senderUid === currentUser.uid ? 'message sent' : 'message';
+                    messageDiv.dataset.messageId = msg.id;
+                    
+                    const time = message.timestamp ? new Date(message.timestamp.toDate()).toLocaleTimeString(currentLang === 'ar' ? 'ar-EG' : 'en-US', { hour: '2-digit', minute: '2-digit' }) : '';
+                    
+                    let replyHtml = '';
+                    if (message.replyTo) {
+                        const replyName = message.replyTo.senderUid === currentUser.uid ? (currentLang === 'ar' ? 'أنت' : 'You') : currentChatUser.name;
+                        replyHtml = `
+                            <div class="reply-preview">
+                                <div class="reply-preview-sender">${replyName}</div>
+                                <div class="reply-preview-text">${escapeHtml(message.replyTo.text)}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    messageDiv.innerHTML = `
+                        <div class="message-bubble" onclick="toggleMessageOptions('${msg.id}')">
+                            ${replyHtml}
+                            <div class="message-text">${escapeHtml(message.text)}</div>
+                            <div class="message-time">${time}</div>
+                        </div>
+                        <div class="reply-indicator" onclick="event.stopPropagation(); replyToMessage('${msg.id}', '${escapeHtml(message.text)}', '${message.senderUid}')">↔</div>
+                    `;
+                    messageContainerEl.appendChild(messageDiv);
+                });
+
+                if (shouldScroll) {
+                    setTimeout(() => {
+                        messageContainerEl.scrollTop = messageContainerEl.scrollHeight;
+                    }, 100);
+                }
+
+                isFirstLoad = false;
+            });
+        }
+
+        window.toggleMessageOptions = function(messageId) {
+            document.querySelectorAll('.message').forEach(msg => {
+                if (msg.dataset.messageId === messageId) {
+                    msg.classList.toggle('active');
+                } else {
+                    msg.classList.remove('active');
+                }
+            });
+        };
+
+        window.replyToMessage = function(messageId, messageText, senderUid) {
+            replyingToMessage = {
+                id: messageId,
+                text: messageText,
+                senderUid: senderUid
+            };
+            
+            const replyBar = document.getElementById('replyingToBar');
+            const replyName = document.getElementById('replyingToName');
+            const replyText = document.getElementById('replyingToText');
+            
+            replyName.textContent = senderUid === currentUser.uid ? (currentLang === 'ar' ? 'أنت' : 'You') : currentChatUser.name;
+            replyText.textContent = messageText;
+            
+            replyBar.classList.add('active');
+            document.getElementById('messageInput').focus();
+            
+            document.querySelectorAll('.message').forEach(msg => msg.classList.remove('active'));
+        };
+
+        window.cancelReply = function() {
+            replyingToMessage = null;
+            document.getElementById('replyingToBar').classList.remove('active');
+        };
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        window.sendMessage = async function() {
+            if (isSending) return;
+
+            const messageInput = document.getElementById('messageInput');
+            const text = messageInput.value.trim();
+
+            if (!text) return;
+
+            isSending = true;
+
+            try {
+                messageInput.value = '';
+                messageInput.blur();
+
+                const messagesRef = collection(db, 'chats', currentChatId, 'messages');
+                const messageData = {
+                    senderUid: currentUser.uid,
+                    text: text,
+                    timestamp: Timestamp.now()
+                };
+
+                if (replyingToMessage) {
+                    messageData.replyTo = {
+                        id: replyingToMessage.id,
+                        text: replyingToMessage.text,
+                        senderUid: replyingToMessage.senderUid
+                    };
+                }
+
+                await addDoc(messagesRef, messageData);
+
+                await updateDoc(doc(db, 'chats', currentChatId), {
+                    lastMessage: text,
+                    lastMessageTime: Timestamp.now()
+                });
+
+                cancelReply();
+
+                setTimeout(() => {
+                    const messageContainerEl = document.getElementById('messageContainer');
+                    messageContainerEl.scrollTop = messageContainerEl.scrollHeight;
+                }, 150);
+
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert(currentLang === 'ar' ? 'خطأ في إرسال الرسالة' : 'Error sending message');
+            } finally {
+                isSending = false;
+            }
+        };
+
+        const messageInput = document.getElementById('messageInput');
+        if (messageInput) {
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (!isSending) {
+                        sendMessage();
+                    }
+                }
+            });
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user && !currentUser) {
+                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    currentUser = { uid: user.uid, ...userData };
+                    if (currentUser.profilePic) {
+                        setTimeout(() => {
+                            updateTexts();
+                            showMain();
+                            loadUserProfile();
+                        }, 100);
+                    } else {
+                        setTimeout(() => {
+                            updateTexts();
+                            showScreen('genderScreen');
+                        }, 100);
+                    }
+                }
+            }
+        });
+
+        window.addEventListener('load', () => {
+            setTimeout(updateTexts, 100);
+        });
+
+        console.log('V Chat initialized successfully!');
+    </script>
+</body>
+</html>
